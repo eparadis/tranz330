@@ -1,0 +1,12 @@
+*.map
+*.lst
+*.ihx
+*.rel
+*.sym
+*.noi
+*.lk
+
+main.bin
+main.asm
+
+*.swp
