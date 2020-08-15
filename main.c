@@ -59,14 +59,74 @@ display_send_byte(byte x) {
     }
 }
 
+display_send_byte_asm(byte x) {
+    // sdcc ASM notes:
+    // see - https://gist.github.com/Konamiman/af5645b9998c802753023cf1be8a2970
+    // Decimal numeric constants must be preceded with #
+    // Hexadecimal numeric constants must be preceded with #0x
+    // The syntax for offsets when using index registers is n(ix), where in other assemblers it's usually (ix+n)
+
+    __asm
+    ld iy, #2
+    add iy, sp  ; bypass the return address of the function in the stack
+
+    ld c, (iy)  ; C should contain param x
+
+    ; (following lifted from BMOW, and translated to SDCCs inline asm)
+    ld b, #8 ; 8 bits to send
+00001$: 
+    IN A, (#0)   ; get current port state
+    RLA     ; rotate the port word until the data bit is in the carry flag
+    RLA
+    RLA
+    RL C    ; shift the next output data bit into the carry flag
+    RRA     ; rotate the port word until the data bit is in bit 5
+    RRA
+    RRA
+    out (#0), A  ; setup the data output (bit 5)
+    or #0x40        ; set clock high (bit 6)
+    out (#0), A
+    and #0xBF       ; set clock low (bit 6)
+    out (#0), A
+    DJNZ 00001$       ; continue with the next bit
+    __endasm;
+}
+
+void display(char *msg) {
+    while(*msg) {
+        display_send_byte_asm(*msg);
+        msg += 1;
+    }
+}
+
+#define NO_KEY -1
+void get_keypress() {
+    // TODO scan the keyboard once and return 0x0 to 0xF
+    return NO_KEY;
+}
+
+char *itoa( int val) {
+    // TODO do the modulo thing to convert to a string
+    return "0";
+}
+
 main() {
     // setup keypad and display
+    setup_PIO();
+    setup_display();
     // display hello world
-    // wait for keypress
-    // display a number
-    // wait for keypress
-    // increment number
-    // loop up two
+    display("HELLO WORLD");
+    
+    int c = 0;
+    do {
+        c += 1;
+        // wait for keypress
+        while(get_keypress() == NO_KEY) {
+         __asm__("nop");
+        }
+        // display a number
+        display(itoa(c));
+    } while(true);
 
     return 0;
 }
