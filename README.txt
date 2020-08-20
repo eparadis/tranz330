@@ -1,11 +1,43 @@
+# Programming the Tranz 330 with SDCC
+
+## Mild success!
+
+The current problem with the below instructions and `compile.sh` is that it 
+ends up with GSINIT being located at 0x8000 (in RAM) instead of in ROM.
+The work around is
+
+    sdcc -mz80 -c main.c
+    sdcc -mz80 --data-loc 0x8000 --no-std-crt0 mycrt0/mycrt0.rel main.rel
+    objcopy -Iihex -Obinary mycrt0.ihx hello_world.bin    
+
+Note that by having to put `myctr0.rel` first, the outptut is named `mycrt0.ihx`.
+But! if you use `hexdump` to look at the resulting binary, everything is inside
+0x2b1 bytes or so, as it should be.
+
+    hd hello_world.bin
+
+I am stil having a problem with SRAM on my test unit. I have to short VCC and GND
+on the SRAM (with the power off!) in order to get a reliable boot of the system.
+Otherwise it works once in a blue moon. This is obviously very frustrating.
+
+I thought it might have something to do with the RTC doing something with the NMI,
+but I have those vectors setup as correctly as I know and severing the NMI traces
+didn't seem to make any difference! This seems to be a known issue. See comment
+here: https://www.bigmessowires.com/2012/12/15/tranz-330-files/#comments
+
+I should also mention that for some reason the display is "HELLO WORLD?????".
+Probably because of a bug in my hastily written string IO junk.
+
+## Basic assembling of a crt0.s
 provided crt0.s in lib/src/z80 is compiled like
 sdasz80 -plosgff crt0.s
 (see https://sourceforge.net/p/sdcc/support-requests/104/ )
 
+## Converting Intel Hex to Binary for EEPROMs
 make a binary file suitable for burning to EEPROM with
 objcopy -Iihex -Obinary input.ihx output.bin
 
-Trans330 IO map
+## Trans330 IO map
 
     Port $00 – PIO parallel port A.
         Bits 3-0: output, keypad columns. Bit 3 is right-most column.
