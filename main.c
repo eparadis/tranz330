@@ -1,4 +1,6 @@
 
+void display_send_byte_asm(char x);
+
 // IO port definitions
 __sfr __at 0x00 PIO_PORT_A; // kbd cols, disp, card reader
 __sfr __at 0x01 PIO_CTRL_A;
@@ -35,29 +37,29 @@ void setup_PIO() {
     PIO_PORT_B=0x00; // initial outputs all low (TODO check this!!!)
 }
 
-void display_send_byte(char x) {
-    // shift out byte on bit 5, MSB first, toggling clock (bit 6)
-    char c = 0;
-    for( c=0; c<8; c++) {
-        if( x & 0x80) {
-            // TODO set data bit
-        } else {
-            // TODO clear data bit
-        }
-        // TODO toggle clock line
-        x = x << 1;
-    }
-}
+// void display_send_byte(char x) {
+//     // shift out byte on bit 5, MSB first, toggling clock (bit 6)
+//     char c = 0;
+//     for( c=0; c<8; c++) {
+//         if( x & 0x80) {
+//             // TODO set data bit
+//         } else {
+//             // TODO clear data bit
+//         }
+//         // TODO toggle clock line
+//         x = x << 1;
+//     }
+// }
 
-void setup_display() {
-    // TODO 
-    // "MSB of 1 is control byte, MSB of 0 is data byte"
-    char current = PIO_PORT_A;
-    PIO_PORT_A = 0xEF & current; // clear bit 4 (display reset)
-    // TODO delay 0x1C cycles
-    PIO_PORT_A = 0x10 | current; // set bit 4 (display reset)
-    display_send_byte(0xFF); // set display duty cycle to 31 (max brightness)
-}
+// void setup_display() {
+//     // TODO 
+//     // "MSB of 1 is control byte, MSB of 0 is data byte"
+//     char current = PIO_PORT_A;
+//     PIO_PORT_A = 0xEF & current; // clear bit 4 (display reset)
+//     // TODO delay 0x1C cycles
+//     PIO_PORT_A = 0x10 | current; // set bit 4 (display reset)
+//     display_send_byte(0xFF); // set display duty cycle to 31 (max brightness)
+// }
 
 void setup_display_asm() {
     __asm
@@ -72,7 +74,7 @@ void setup_display_asm() {
     __endasm;
 
     // set the display duty cycle to 31 (max brightness)
-    display_send_byte(0xff);
+    display_send_byte_asm(0xff);
 }
 
 void display_send_byte_asm(char x) {
@@ -115,33 +117,37 @@ void display(char *msg) {
     }
 }
 
-#define NO_KEY 0xFF
-char get_keypress() {
-    // TODO scan the keyboard once and return 0x0 to 0xF
-    return NO_KEY;
-}
+// #define NO_KEY 0xFF
+// char get_keypress() {
+//     // TODO scan the keyboard once and return 0x0 to 0xF
+//     return NO_KEY;
+// }
 
-char *itoa( int val) {
-    // TODO do the modulo thing to convert to a string
-    val; // silence compiler for now
-    return "0";
-}
+// const char zero[] = "0";
+// char *itoa( int val) {
+//     // TODO do the modulo thing to convert to a string
+//     val; // silence compiler for now
+//     return zero;
+// }
+
+// string constants we want in ROM
+const char msg1[] = "HELLO WORLD";
 
 void main() {
     // setup keypad and display
     setup_PIO();
     setup_display_asm();
     // display hello world
-    display("HELLO WORLD");
+    display(msg1);
     
-    int c = 0;
-    do {
-        c += 1;
-        // wait for keypress
-        while(get_keypress() == NO_KEY) {
-            __asm__("nop");
-        }
-        // display a number
-        display(itoa(c));
-    } while(1);
+    // int c = 0;
+    // do {
+    //     c += 1;
+    //     // wait for keypress
+    //     while(get_keypress() == NO_KEY) {
+    //         __asm__("nop");
+    //     }
+    //     // display a number
+    //     display(itoa(c));
+    // } while(1);
 }
