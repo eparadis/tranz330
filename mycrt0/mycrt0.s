@@ -66,7 +66,7 @@ init:
     ;; startup delay required before accessing RAM to allow it to settle
     ;; see BMOW comment: https://www.bigmessowires.com/2012/12/15/tranz-330-files/
     DI              ; DISABLE INTERRUPTS
-    LD HL, 0B00H    ; POWER ON DELAY
+    LD HL, #0x0B00  ; POWER ON DELAY
 COLD_DELAY:
     DEC HL
     LD A, H
