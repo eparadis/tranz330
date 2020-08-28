@@ -63,6 +63,16 @@
 
 	.org	0x100
 init:
+    ;; startup delay required before accessing RAM to allow it to settle
+    ;; see BMOW comment: https://www.bigmessowires.com/2012/12/15/tranz-330-files/
+    DI              ; DISABLE INTERRUPTS
+    LD HL, 0B00H    ; POWER ON DELAY
+COLD_DELAY:
+    DEC HL
+    LD A, H
+    OR L
+    JR NZ, COLD_DELAY
+
 	;; Set stack pointer directly above top of memory.
 	ld	sp,#0x0000
 
