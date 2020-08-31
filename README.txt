@@ -16,14 +16,10 @@ But! if you use `hexdump` to look at the resulting binary, everything is inside
 
     hd hello_world.bin
 
-I am stil having a problem with SRAM on my test unit. I have to short VCC and GND
-on the SRAM (with the power off!) in order to get a reliable boot of the system.
-Otherwise it works once in a blue moon. This is obviously very frustrating.
-
-I thought it might have something to do with the RTC doing something with the NMI,
-but I have those vectors setup as correctly as I know and severing the NMI traces
-didn't seem to make any difference! This seems to be a known issue. See comment
-here: https://www.bigmessowires.com/2012/12/15/tranz-330-files/#comments
+Please note the introduction of a startup delay in `mycrt0.s`. It seems to give
+the SRAM time to settle before setting the stack pointer. Without this delay,
+startup is very inconsistent. See the comments on this post for more
+details: https://www.bigmessowires.com/2012/12/15/tranz-330-files/#comments
 
 I should also mention that for some reason the display is "HELLO WORLD?????".
 Probably because of a bug in my hastily written string IO junk.
